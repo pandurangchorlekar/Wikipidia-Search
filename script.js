@@ -1,3 +1,4 @@
+
 let searchInputEl = document.getElementById("searchInput");
 let searchResultsEl = document.getElementById("searchResults");
 let spinnerEl = document.getElementById("spinner");
@@ -5,16 +6,23 @@ let spinnerEl = document.getElementById("spinner");
 searchInputEl.addEventListener("keydown", function(event) {
     if (event.key === "Enter") {
 
-        searchResultsEl.innerHTML = "";
+        let searchValue = searchInputEl.value.trim();
 
+        if (searchValue === "") {
+            searchResultsEl.textContent = "Please enter a search keyword.";
+            return;
+        }
+
+        searchResultsEl.innerHTML = "";
         spinnerEl.classList.remove("d-none");
 
-        let searchValue = searchInputEl.value;
-
-        let url = "https://apis.ccbp.in/wiki-search?search=" + searchValue;
+        let url = "https://apis.ccbp.in/wiki-search?search=" + encodeURIComponent(searchValue);
 
         fetch(url)
             .then(function(response) {
+                if (!response.ok) {
+                    throw new Error("Network response was not successful");
+                }
                 return response.json();
             })
             .then(function(data) {
@@ -28,26 +36,24 @@ searchInputEl.addEventListener("keydown", function(event) {
                     let resultContainerEl = document.createElement("div");
                     resultContainerEl.classList.add("result-item");
 
-                    // Title
                     let titleEl = document.createElement("a");
                     titleEl.textContent = result.title;
                     titleEl.href = result.link;
                     titleEl.target = "_blank";
+                    titleEl.rel = "noopener noreferrer";
                     titleEl.classList.add("result-title");
 
-                    // URL
                     let urlEl = document.createElement("a");
                     urlEl.href = result.link;
                     urlEl.textContent = result.link;
                     urlEl.target = "_blank";
+                    urlEl.rel = "noopener noreferrer";
                     urlEl.classList.add("result-url");
 
-                    // Description
                     let descriptionEl = document.createElement("p");
                     descriptionEl.textContent = result.description;
                     descriptionEl.classList.add("link-description");
 
-                    // Append elements
                     resultContainerEl.appendChild(titleEl);
                     resultContainerEl.appendChild(document.createElement("br"));
                     resultContainerEl.appendChild(urlEl);
@@ -58,7 +64,7 @@ searchInputEl.addEventListener("keydown", function(event) {
             })
             .catch(function(error) {
                 spinnerEl.classList.add("d-none");
-                searchResultsEl.textContent = "Something went wrong!";
+                searchResultsEl.textContent = "Something went wrong. Please try again.";
             });
     }
 });
